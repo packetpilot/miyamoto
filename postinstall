@@ -10,19 +10,10 @@ fi
 if [ `gem list | grep puppet | wc -l` -eq 0 ]; then
   if [ -f /usr/bin/puppet ]; then
     logger -t miyamoto "Removing non-gem puppet"
-		rm -f /usr/bin/puppet /usr/bin/hiera
+		rm -f /usr/bin/puppet /usr/bin/hiera /usr/bin/facter
   fi
   logger -t miyamoto "Installing puppet"
   gem install puppet --version 3.8.2 --no-ri --no-rdoc
-fi
-
-if [ `gem list | grep facter | wc -l` -eq 0 ]; then
-  if [ -f /usr/bin/facter ]; then
-    logger -t miyamoto "Removing non-gem facter"
-    rm -f /usr/bin/facter
-  fi
-  logger -t miyamoto "Installing facter"
-  gem install facter --no-ri --no-rdoc
 fi
 
 # Nuke stale puppet stuff
