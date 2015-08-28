@@ -7,12 +7,17 @@
 #
 # This is released under the BSD license.
 
+
+# define the region your s3 bucket is in; assuming default
+S3_REGION='us-east-1'
 CONF_D='/etc/miyamoto'
+
 
 require 'rubygems'
 require 'aws/s3'
 require 'json'
 require 'pp'
+require 'puppet'
 require 'syslog'
 require 'trollop'
 
@@ -66,6 +71,9 @@ def my_aws_credentials()
 end
 
 def connect_to_s3(credentials)
+  unless S3_REGION == "us-east-1"
+    AWS::S3::DEFAULT_HOST.replace "s3-#{S3_REGION}.amazonaws.com"
+  end
   AWS::S3::Base.establish_connection!(
     :access_key_id => credentials[:access_key_id],
     :secret_access_key => credentials[:secret_access_key]

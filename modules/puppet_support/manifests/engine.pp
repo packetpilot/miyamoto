@@ -33,6 +33,14 @@ class puppet_support::engine {
     source  => 'puppet:///modules/puppet_support/puppetstarter',
   }
 
+  file { '/usr/local/sbin/write_status_to_s3':
+    owner   => 'root',
+    group   => 'wheel',
+    mode    => '0755',
+    require => File['/usr/local/sbin'],
+    source  => 'puppet:///modules/puppet_support/write_status_to_s3'
+  }
+
   # facter wrapper that deals with facter bug where you can't do
   # 'facter factname' if factname relies on other facts to compute the value
   file { '/usr/local/bin/fctr':

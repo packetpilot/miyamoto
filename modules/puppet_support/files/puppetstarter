@@ -95,6 +95,11 @@ apply_puppet_environment() {
   popd
 }
 
+write_status_to_s3() {
+  lottger -t "${LOG_AS}" "writing status to s3."
+  /usr/local/sbin/write_status_to_s3
+}
+
 main() {
   check_for_disable
   ensure_running_as_root
@@ -102,6 +107,7 @@ main() {
   set_lock
   update_puppet_repo
   apply_puppet_environment
+  write_status_to_s3
   unset_lock
 }
 
