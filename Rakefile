@@ -1,3 +1,8 @@
+# Copyright 2012 Ooyala, Inc
+# Author: Joe Block
+#
+# This is released under the BSD license.
+
 BUCKET_BASE="s3://masterless-puppet.example.com/osx"
 BINARIES_D="#{BUCKET_BASE}/binaries"
 FLAVOR_D="#{BUCKET_BASE}/flavors"
@@ -27,40 +32,40 @@ end
 
 desc "setup branches"
 task :setup_branches do
-  %x[ git checkout -b lion_stable origin/lion_stable ]
-  %x[ git checkout -b lion_unstable origin/lion_unstable ]
+  %x[ git checkout -b yosemite_stable origin/yosemite_stable ]
+  %x[ git checkout -b yosemite_unstable origin/yosemite_unstable ]
 end
 
 desc "setup new checkout"
 task :setup_new_banches => [:set_precommit, :setup_branches] do
 end
 
-desc "Promote lion_unstable -> lion_stable, master -> lion_unstable"
+desc "Promote yosemite_unstable -> yosemite_stable, master -> yosemite_unstable"
 task :bump_osx => [:set_precommit] do
-  `rake promote_lion_unstable_to_lion_stable`
-  `rake promote_master_to_lion_unstable`
+  `rake promote_yosemite_unstable_to_yosemite_stable`
+  `rake promote_master_to_yosemite_unstable`
 end
 
 desc "Promote master -> unstable"
 task :update_unstable => [:set_precommit] do
-  `rake promote_master_to_lion_unstable`
+  `rake promote_master_to_yosemite_unstable`
 end
 
-desc "Promote master -> lion_unstable"
-task :promote_master_to_lion_unstable => [:set_precommit] do
-  puts "promoting master to lion_unstable"
-  git_checkout! "lion_unstable"
+desc "Promote master -> yosemite_unstable"
+task :promote_master_to_yosemite_unstable => [:set_precommit] do
+  puts "promoting master to yosemite_unstable"
+  git_checkout! "yosemite_unstable"
   git_merge! "master"
-  git_push "origin lion_unstable"
+  git_push "origin yosemite_unstable"
   git_checkout! "master"
 end
 
-desc "Promote lion_unstable -> lion_stable"
-task :promote_lion_unstable_to_lion_stable => [:set_precommit] do
-  puts "promoting lion_unstable to lion_stable"
-  git_checkout! "lion_stable"
-  git_merge! "lion_unstable"
-  git_push "origin lion_stable"
+desc "Promote yosemite_unstable -> yosemite_stable"
+task :promote_yosemite_unstable_to_yosemite_stable => [:set_precommit] do
+  puts "promoting yosemite_unstable to yosemite_stable"
+  git_checkout! "yosemite_stable"
+  git_merge! "yosemite_unstable"
+  git_push "origin yosemite_stable"
   git_checkout! "master"
 end
 
@@ -82,17 +87,17 @@ end
 
 desc "publish stable branch to s3"
 task :publish_stable do
-  fname = publish_branch("lion_stable")
+  fname = publish_branch("yosemite_stable")
 end
 
 desc "publish unstable branch to s3"
 task :publish_unstable do
-  fname = publish_branch("lion_unstable")
+  fname = publish_branch("yosemite_unstable")
 end
 
 desc "snapshot unstable to dmg"
 task :snapshot_unstable_to_dmg do
-	snapshot_branch_to_dmg('lion_unstable')
+	snapshot_branch_to_dmg('yosemite_unstable')
 end
 
 desc "Test masterless mode"
