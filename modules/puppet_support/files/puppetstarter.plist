@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Disabled</key>
+        <false/>
+        <key>EnvironmentVariables</key>
+        <dict>
+                <key>PATH</key>
+                <string>/sbin:/usr/sbin:/bin:/usr/bin:/opt/local/bin:/opt/local/sbin</string>
+                <key>RUBYLIB</key>
+                <string>/usr/lib/ruby/site_ruby/2.0/</string>
+        </dict>
+        <key>Label</key>
+        <string>com.example.corp.miyamoto.puppetstarter</string>
+        <key>OnDemand</key>
+        <true/>
+        <key>ProgramArguments</key>
+        <array>
+                <string>/usr/local/sbin/puppetstarter</string>
+        </array>
+        <key>StandardErrorPath</key>
+        <string>/var/log/puppet/puppet.err</string>
+        <key>StandardOutPath</key>
+        <string>/var/log/puppet/puppet.out</string>
+        <key>StartInterval</key>
+        <integer>1800</integer>
+</dict>
+</plist>

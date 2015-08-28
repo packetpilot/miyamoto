@@ -1,7 +1,7 @@
 #
 # fact returns knob values based on contents of /etc/knobs.
 #
-# Author: jpb@ooyala.com
+# Author: Joe Block
 #
 # Copyright 2009-2012 Ooyala, Inc.
 # License: BSD
@@ -52,4 +52,3 @@ end
 if File.directory?('/etc/knobs')
   load_knobs('/etc/knobs')
 end
-

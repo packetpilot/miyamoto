@@ -4,7 +4,7 @@
 # named after the script with the fact value set to the last line of the script
 # output.
 #
-# Author: jpb@ooyala.com
+# Author: Joe Block 
 #
 # Copyright 2009-2012 Ooyala
 # License: BSD

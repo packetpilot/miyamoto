@@ -1,0 +1,158 @@
+#!/usr/bin/python
+#
+# This is released under the Apache license
+#
+# Copyright 2012 Ooyala
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Based on run_image_tests.py in the pymacadmin project's
+# diskimage_unittesting subproject
+
+"""Mount a dmg file, then install any pkg or mpkg files found inside.
+
+This script expects to be passed the path to a dmg that is a Mac OS X
+image. It mounts the image, makes a list of pkg & mpkg files, then installs
+them on the / partition.
+
+Author: Joe Block
+"""
+
+
+import optparse
+import os
+import re
+import subprocess
+import sys
+import types
+import unittest
+import plistlib
+
+
+def AttachDiskImage(path):
+  """attaches a dmg, returns mountpoint, assuming only one filesystem."""
+
+  command = ["/usr/bin/hdiutil", "attach", path, "-mountrandom", "/tmp",
+             "-readonly", "-nobrowse", "-noautoopen", "-plist",
+             "-owners", "on"]
+  task = subprocess.Popen(command,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+  (stdout, stderr) = task.communicate()
+  if task.returncode:
+    print "There was an error attaching dmg: %s" % path
+    print stderr
+    return False
+  else:
+    mountpoint = False
+    dmg_plist = plistlib.readPlistFromString(stdout)
+    entities = dmg_plist["system-entities"]
+    for entity in entities:
+      if "mount-point" in entity:
+        mountpoint = entity["mount-point"]
+    return mountpoint
+
+
+def DetachDiskImage(path):
+  """forcibly unmounts a given dmg from the mountpoint path."""
+
+  command = ["/usr/bin/hdiutil", "detach", path]
+  returncode = subprocess.call(command)
+  if returncode:
+    command = ["/usr/bin/hdiutil", "detach", "-force", path]
+    returncode = subprocess.call(command)
+    if returncode:
+      raise StandardError("Unable to unmount dmg mounted at: %s" % path)
+  return True
+
+
+def InstallPackage(path):
+  """Install a package. We assume they're going to be Apple packages and that
+     they're going to be installed on the / filesystem"""
+
+  command = ["/usr/sbin/installer", "-target", "/", "-pkg", path]
+  task = subprocess.Popen(command,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+  (stdout, stderr) = task.communicate()
+  if task.returncode:
+    print "There was an error installing: %s" % path
+    # installer prints its errors to stdout, naturally. Why use the file
+    # descriptor _meant_ for error output?
+    print stdout
+    raise StandardError("Unable to install %s" % path)
+  else:
+    if verbosity > 0:
+      print "Installed %s" % path
+    if verbosity > 10:
+      print stdout
+
+
+def GetPackageList(path):
+  """lists files in directory "path" ending in .pkg or .mpkg."""
+
+  pattern = re.compile("^[A-Za-z0-9\-\_]*.m?pkg$", re.IGNORECASE)
+  packages = []
+  for package in os.listdir(path):
+    if pattern.match(package):
+      packages.append(package)
+  packages.sort()
+  return packages
+
+
+def ParseCLI():
+  """Parse command line options."""
+
+  cli = optparse.OptionParser()
+  cli.add_option("-d", "--dmg", dest="dmg", type="string",
+                 help="specify path to dmg to test.")
+  cli.add_option("-v", "--verbosity", type="int", dest="verbosity",
+                 help="specify verbosity level", default=0)
+  (options, args) = cli.parse_args()
+  return (options, args)
+
+
+def ProcessDMG(dmg_path):
+  """Mount a DMG and install the contents"""
+
+  print "Mounting disk image %s" % dmg_path
+  mountpoint = AttachDiskImage(dmg_path)
+  if not mountpoint:
+    print "Derp! Can't mount %s" % dmg_path
+    sys.exit(1)
+  packages = GetPackageList(mountpoint)
+  for p in packages:
+    InstallPackage("%s/%s" % (mountpoint, p))
+  DetachDiskImage(mountpoint)
+
+
+verbosity = 0
+
+
+def main():
+  """Main"""
+
+  # if not root...kick out
+  if not os.geteuid()==0:
+      sys.exit("\nOnly root can run this script\n")
+  global verbosity
+  (options, unused_args) = ParseCLI()
+  dmg = options.dmg
+  verbosity = options.verbosity
+  if not dmg:
+    print "Derp! You need to specify a dmg file to install from with --dmg"
+    sys.exit(1)
+  ProcessDMG(dmg)
+
+if __name__ == "__main__":
+  main()

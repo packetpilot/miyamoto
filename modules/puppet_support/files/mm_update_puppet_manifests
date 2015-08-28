@@ -1,9 +1,9 @@
 #!/usr/bin/ruby
 #
-# Update the puppet repo from a deb stored in s3
+# Update the puppet repo from a dmg stored in s3
 #
 # Copyright 2012 Ooyala, Inc.
-# Author: Joe Block <jpb@ooyala.com>
+# Author: Joe Block
 #
 # This is released under the Apache license.
 
@@ -22,7 +22,7 @@ FLAVORS_D="#{BUCKET_BASE}/flavors"
 MANIFEST_D="#{BUCKET_BASE}/manifests"
 
 AWS='/usr/local/bin/aws'
-DEFAULT_FLAVOR='puppet_server_stable'
+DEFAULT_FLAVOR='yosemite-stable'
 
 def log_message(msg, threshold = 0)
   Syslog.notice(msg)
@@ -80,7 +80,7 @@ end
 
 def dmg_install(dmg_path)
   log_message("Installing packages from #{dmg_path}")
-  %x[ /usr/local/sbin/install_from_dmg #{dmg_path} ]
+  %x[ /usr/local/sbin/install_dmg_from_s3 --dmg #{dmg_path} ]
   return
 end
 
@@ -89,17 +89,18 @@ def update_manifests(flavor)
   flavor_version = server_environment_version?(flavor)
   cache_d = "#{BASE_D}/cache"
   temp_d = "/tmp/miyamoto_#{$$}"
-  flavor_file = "#{flavor}-#{flavor_version}.deb"
-  deb_path = "#{temp_d}/#{flavor_file}"
-  log_message("deb_path: #{deb_path}")
+  flavor_file = "#{flavor}-#{flavor_version}.dmg"
+  dmg_path = "#{temp_d}/#{flavor_file}"
+  log_message("dmg_path: #{dmg_path}")
   log_message("Downloading manifest package version #{flavor_version} of #{flavor} environment")
   FileUtils.mkdir_p(cache_d)
   FileUtils.mkdir_p(temp_d)
-  dl_cmd="#{AWS} get #{MANIFEST_D}/#{flavor}/#{flavor_file} #{deb_path}"
-  %x[ #{dl_cmd} ]
-  %x[ dpkg --install #{deb_path} ]
-  FileUtils.mv deb_path, cache_d
-  FileUtils.rmdir(temp_d)
+  cmd="#{AWS} get #{MANIFEST_D}/#{flavor}/#{flavor_file} #{dmg_path}"
+  zz=%x[ #{cmd} ]
+  dmg_install("#{dmg_path}")
+  %x[ mv #{dmg_path} #{cache_d} ] if File.exists? "/etc/knobs/puppet_keep_old_manifests"
+  FileUtils.rm_rf temp_d
+  synchronize_facts!
 end
 
 def main
@@ -125,12 +126,12 @@ def main
 end
 
 if __FILE__ == $0
-  Syslog.open(ident='ronin')
+  Syslog.open(ident='miyamoto')
 
   opts = Trollop::options do
     version "mm_update_puppet_manifests 0.1"
     banner <<-EOS
-  Update puppet manifests from deb in s3
+  Update puppet manifests from dmg in s3
 
   EOS
     opt :debug, "debug level", :type => Integer, :default => 0

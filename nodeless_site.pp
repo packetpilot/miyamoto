@@ -1,7 +1,5 @@
 # Masterless and nodeless puppet.
 
-import "classes/*"
-
 node default {
 
   include puppet_support::base

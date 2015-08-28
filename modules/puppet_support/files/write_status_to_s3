@@ -2,7 +2,7 @@
 #
 # write a flavor version to a S3 bucket
 #
-# Author: Joe Block <jpb@ooyala.com>
+# Author: Joe Block
 # Copyright 2012, Ooyala, Inc.
 #
 # This is released under the BSD license.
@@ -29,7 +29,7 @@ unless $LOAD_PATH.include?(Puppet[:libdir])
   $LOAD_PATH << Puppet[:libdir]
 end
 
-class RoninFlavor < AWS::S3::S3Object
+class MiyamotoFlavor < AWS::S3::S3Object
     set_current_bucket_to 'masterless-puppet.YOURDOMAINHERE.com'
 end
 
@@ -85,10 +85,10 @@ end
 
 if __FILE__ == $0
   opts = Trollop::options do
-    version "oo_status_to_s3 0.1"
+    version "mm_status_to_s3 0.1"
     banner <<-EOS
    Write a status file to S3
-  
+
   EOS
     opt :debug, "debug level", :type => Integer, :default => 0
     opt :branch_name, "branch name to snapshot", :type => String, :default => ENV['USER']
@@ -102,7 +102,7 @@ if __FILE__ == $0
   Syslog.open(ident='miyamoto')
   dump_globals if $debug > 0
   connect_to_s3(my_aws_credentials)
-  flavor = RoninFlavor.find("flavors/#{branch_name}")
+  flavor = MiyamotoFlavor.find("flavors/#{branch_name}")
   if $debug > 0
     puts "flavor:"
     pp flavor

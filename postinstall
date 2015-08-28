@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# These gems are required by masterless puppet
+# There are checks to ease transition from traditional puppet
+if [ `gem list | grep trollop | wc -l` -eq 0 ]; then
+  logger -t miyamoto "Installing trollop"
+  gem install trollop --no-ri --no-rdoc
+fi
+
+if [ `gem list | grep puppet | wc -l` -eq 0 ]; then
+  if [ -f /usr/bin/puppet ]; then
+    logger -t miyamoto "Removing non-gem puppet"
+		rm -f /usr/bin/puppet /usr/bin/hiera
+  fi
+  logger -t miyamoto "Installing puppet"
+  gem install puppet --version 3.8.2 --no-ri --no-rdoc
+fi
+
+if [ `gem list | grep facter | wc -l` -eq 0 ]; then
+  if [ -f /usr/bin/facter ]; then
+    logger -t miyamoto "Removing non-gem facter"
+    rm -f /usr/bin/facter
+  fi
+  logger -t miyamoto "Installing facter"
+  gem install facter --no-ri --no-rdoc
+fi
+
+# Nuke stale puppet stuff
+rm -frv /var/lib/puppet
+if [ -f /Library/LaunchDaemons/com.example.corp.puppet.plist ]; then
+  launchctl unload -w /Library/LaunchDaemons/com.example.corp.puppet.plist
+  rm -f /Library/LaunchDaemons/com.example.corp.puppet.plist
+fi
+
+# Load the new LaunchDaemon
+launchctl load /Library/LaunchDaemons/com.example.corp.miyamoto.puppetclient.plist

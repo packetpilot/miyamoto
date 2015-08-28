@@ -22,7 +22,7 @@ clone_facts() {
 # don't try to sync if we don't have a valid dir to sync from
 check_for_valid_manifests() {
   if [ ! -d ${REPO_D} ];then
-    logger -t pinocchio "oo_sync_facts: ${REPO_D} missing"
+    logger -t pinocchio "mm_sync_facts: ${REPO_D} missing"
     exit 1
   fi
 }
