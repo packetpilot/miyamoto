@@ -2,7 +2,7 @@
 # Author: Joe Block
 # License: BSD
 #
-# Create a pkg that installs the current manifests into /etc/ooyala/puppet
+# Create a pkg that installs the current manifests into /etc/miyamoto/puppet
 #
 # You must have already installed the luggage (available from
 # https://github.com/unixorn/luggage) for this to work.
